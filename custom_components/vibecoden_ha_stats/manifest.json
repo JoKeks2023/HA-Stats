@@ -1,0 +1,13 @@
+{
+  "domain": "vibecoden_ha_stats",
+  "name": "Vibecoden HA Stats",
+  "version": "0.1.0",
+  "documentation": "https://github.com/JoKeks2023/HA-Stats",
+  "issue_tracker": "https://github.com/JoKeks2023/HA-Stats/issues",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": [],
+  "homeassistant": "2022.12.0",
+  "config_flow": true,
+  "iot_class": "local_polling"
+}

@@ -1,1 +1,230 @@
-# HA-Stats
+# 🏠 Vibecoden HA Stats
+
+> **A Home Assistant custom integration that turns your smart home into a stats-nerd playground.**
+> Useful metrics side-by-side with hilariously useless ones — because why not?
+
+---
+
+## ✨ Features
+
+| Category | What you get |
+|---|---|
+| **Core stats** | Device count, entity count, integrations, automations, uptime, CPU & RAM, energy |
+| **Fun stats** | Most-used emoji, Pokémon-named devices, daily mascot, party-mode detector and more |
+| **Options flow** | Tweak poll interval, toggle fun stats & host telemetry — all from the UI |
+| **No dependencies** | Pure Home Assistant Core (psutil optional for CPU/RAM) |
+
+---
+
+## 📦 Installation
+
+### Option A — Manual (HACS-style)
+
+1. Copy the `custom_components/vibecoden_ha_stats` folder into your HA
+   `config/custom_components/` directory:
+
+   ```
+   config/
+   └── custom_components/
+       └── vibecoden_ha_stats/
+           ├── __init__.py
+           ├── binary_sensor.py
+           ├── config_flow.py
+           ├── const.py
+           ├── coordinator.py
+           ├── manifest.json
+           ├── sensor.py
+           ├── strings.json
+           └── translations/
+               └── en.json
+   ```
+
+2. **Restart** Home Assistant.
+
+3. Go to **Settings → Devices & Services → Add Integration** and search for
+   **"Vibecoden HA Stats"**.
+
+4. Click **Submit** — no credentials required.
+
+### Option B — HACS (future)
+
+Once listed in HACS, install via **HACS → Integrations → Vibecoden HA Stats**.
+
+---
+
+## ⚙️ Options
+
+After installation, click **Configure** on the integration card to adjust:
+
+| Option | Default | Description |
+|---|---|---|
+| `scan_interval` | `300` s | How often stats are refreshed (30 – 86 400 s) |
+| `enable_fun_stats` | `true` | Toggle all fun / useless sensors |
+| `enable_host_telemetry` | `true` | Enable CPU & RAM sensors (needs `psutil`) |
+
+> **psutil** ships with Home Assistant OS / Supervised. On Container installs
+> you may need `pip install psutil` inside the HA container if CPU/RAM sensors
+> show `unknown`.
+
+---
+
+## 📊 Available Entities
+
+### Core sensors
+
+| Entity ID | Unit | Description |
+|---|---|---|
+| `sensor.vibe_total_devices` | — | Total devices in device registry |
+| `sensor.vibe_total_entities` | — | Total entity states |
+| `sensor.vibe_integrations_count` | — | Number of configured integrations |
+| `sensor.vibe_automation_count` | — | Number of automation entities |
+| `sensor.vibe_script_count` | — | Number of script entities |
+| `sensor.vibe_scene_count` | — | Number of scene entities |
+| `sensor.vibe_uptime_days` | days | Host uptime in days (psutil) |
+| `sensor.vibe_active_devices_24h` | — | Entities that changed state in last 24 h |
+| `sensor.vibe_host_cpu_pct` | % | Host CPU usage (psutil) |
+| `sensor.vibe_host_ram_pct` | % | Host RAM usage (psutil) |
+| `sensor.vibe_energy_24h_kwh` | kWh | Sum of all energy sensor states |
+
+### Fun sensors *(toggleable)*
+
+| Entity ID | Description |
+|---|---|
+| `sensor.vibe_most_used_emoji` | Most frequent emoji across friendly names |
+| `sensor.vibe_avg_entity_id_length` | Average character length of entity IDs |
+| `sensor.vibe_devices_named_after_pokemon` | Devices whose names contain a Pokémon name |
+| `sensor.vibe_emoji_density` | % of friendly-name characters that are emojis |
+| `sensor.vibe_most_redundant_name` | Most duplicated friendly name |
+| `sensor.vibe_random_daily_device_quote` | Rotates daily — motivational device wisdom |
+| `sensor.vibe_house_mascot` | Your home's daily spirit animal 🦙 |
+| `binary_sensor.vibe_everything_off_party_mode` | `on` when zero lights are on |
+
+---
+
+## 🎨 Lovelace / Dashboard Examples
+
+### 1 — Stats Overview Card
+
+```yaml
+type: entities
+title: 🏠 HA Stats Overview
+entities:
+  - entity: sensor.vibe_total_devices
+    name: Total Devices
+    icon: mdi:devices
+  - entity: sensor.vibe_total_entities
+    name: Total Entities
+    icon: mdi:format-list-bulleted
+  - entity: sensor.vibe_integrations_count
+    name: Integrations
+    icon: mdi:puzzle
+  - entity: sensor.vibe_automation_count
+    name: Automations
+    icon: mdi:robot
+  - entity: sensor.vibe_uptime_days
+    name: Host Uptime
+    icon: mdi:timer-outline
+  - entity: sensor.vibe_host_cpu_pct
+    name: CPU
+    icon: mdi:cpu-64-bit
+  - entity: sensor.vibe_host_ram_pct
+    name: RAM
+    icon: mdi:memory
+```
+
+### 2 — Fun Stats / Achievement Wall
+
+```yaml
+type: grid
+columns: 2
+cards:
+  - type: entity
+    entity: sensor.vibe_most_used_emoji
+    name: Most Used Emoji
+    icon: mdi:emoticon-outline
+  - type: entity
+    entity: sensor.vibe_devices_named_after_pokemon
+    name: Pokémon Devices
+    icon: mdi:pokeball
+  - type: entity
+    entity: sensor.vibe_emoji_density
+    name: Emoji Density
+    icon: mdi:percent
+  - type: entity
+    entity: sensor.vibe_house_mascot
+    name: Today's Mascot
+    icon: mdi:home-heart
+  - type: entity
+    entity: sensor.vibe_most_redundant_name
+    name: Most Redundant Name
+    icon: mdi:content-duplicate
+  - type: entity
+    entity: binary_sensor.vibe_everything_off_party_mode
+    name: Party Mode 🎉
+    icon: mdi:party-popper
+```
+
+### 3 — Animated Markdown Counter
+
+```yaml
+type: markdown
+content: |
+  ## 🏠 Home at a Glance
+
+  | | |
+  |---|---|
+  | 📦 Devices | **{{ states('sensor.vibe_total_devices') }}** |
+  | 🔌 Entities | **{{ states('sensor.vibe_total_entities') }}** |
+  | 🧩 Integrations | **{{ states('sensor.vibe_integrations_count') }}** |
+  | ⚡ Energy (24 h) | **{{ states('sensor.vibe_energy_24h_kwh') }} kWh** |
+  | 🦙 Mascot | {{ states('sensor.vibe_house_mascot') }} |
+  | 💬 Quote | *{{ states('sensor.vibe_random_daily_device_quote') }}* |
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+vibecoden_ha_stats/
+├── __init__.py          # async_setup_entry / async_unload_entry
+├── config_flow.py       # ConfigFlow + OptionsFlow
+├── const.py             # DOMAIN, PLATFORMS, defaults, lists
+├── coordinator.py       # VibeStatsCoordinator (DataUpdateCoordinator)
+├── sensor.py            # SensorEntity subclasses (core + fun)
+├── binary_sensor.py     # BinarySensorEntity subclasses
+├── manifest.json
+├── strings.json
+└── translations/
+    └── en.json
+```
+
+**Data flow:**
+1. `VibeStatsCoordinator._async_update_data()` runs every N seconds.
+2. Core stats are collected async on the event loop.
+3. Fun stats (string parsing) run in a thread via `run_in_executor`.
+4. All entities inherit from `CoordinatorEntity` and get data via `coordinator.data`.
+
+---
+
+## 🔒 Privacy & Performance
+
+- No usernames, passwords, or IP addresses are collected or stored.
+- Fun stats only count/analyze entity IDs and friendly names — no state values.
+- Heavy string operations run off the main loop in a thread pool executor.
+- Sensitive host telemetry (CPU/RAM) can be disabled in Options.
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo.
+2. Create your feature branch: `git checkout -b feat/my-cool-stat`
+3. Commit your changes and open a PR.
+
+---
+
+## 📜 License
+
+MIT — do whatever you want, just don't blame us when your home assistant
+develops an existential crisis after seeing the `vibe_everything_off_party_mode` sensor.
