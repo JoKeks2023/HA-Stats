@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vibecoden HA Stats",
+        "description": "Click Submit to install the Vibecoden HA Stats integration. No additional configuration is needed — you can customise settings afterwards via Options."
+      }
+    },
+    "abort": {
+      "already_configured": "Vibecoden HA Stats is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vibecoden HA Stats Options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "enable_fun_stats": "Enable fun / useless stats",
+          "enable_host_telemetry": "Enable host CPU, RAM & Disk telemetry (requires psutil)"
+        }
+      }
+    }
+  }
+}
