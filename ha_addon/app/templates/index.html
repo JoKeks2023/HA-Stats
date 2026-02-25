@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏠 HA Stats Dashboard</title>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --accent:    #58a6ff;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+      --red:       #f85149;
+      --radius:    12px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 700; }
+    header h1 span { color: var(--accent); }
+
+    #last-updated {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── Section titles ────────────────────────────────────────────────────── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin: 2rem 0 .75rem;
+    }
+
+    /* ── Grid ──────────────────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ── Stat Card ─────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      transition: transform .15s, box-shadow .15s;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.55);
+    }
+
+    .card-label {
+      font-size: .75rem;
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    /* Compact style for longer string values */
+    .card-value.compact { font-size: 1rem; }
+
+    /* State-based colouring */
+    .card[data-state="unavailable"] .card-value,
+    .card[data-state="unknown"]     .card-value { color: var(--muted); font-style: italic; }
+    .card[data-alert="true"]        .card-value { color: var(--red); }
+    .card[data-warn="true"]         .card-value { color: var(--yellow); }
+
+    /* Party mode card */
+    .card[data-party="true"] {
+      border-color: var(--green);
+      animation: pulse-border 1.5s infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: var(--green); }
+      50%       { border-color: var(--accent); }
+    }
+
+    /* ── Gauge Bar (system metrics) ────────────────────────────────────────── */
+    .gauge-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      margin-top: .3rem;
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+    .gauge-fill.low    { background: var(--green); }
+    .gauge-fill.medium { background: var(--yellow); }
+    .gauge-fill.high   { background: var(--red); }
+
+    /* ── Quote card ────────────────────────────────────────────────────────── */
+    .quote-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.25rem;
+      font-size: .95rem;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    /* ── Footer ────────────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: .75rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 <span>HA Stats</span> Dashboard</h1>
+  <span id="last-updated">Loading…</span>
+</header>
+
+<!-- ── Sections are rendered by JS ─────────────────────────────────────────── -->
+<div id="app"></div>
+
+<footer>
+  Powered by <a href="https://github.com/JoKeks2023/HA-Stats" target="_blank">Vibecoden HA Stats</a>
+  &nbsp;·&nbsp; auto-refresh every {{ refresh_interval }} s
+</footer>
+
+<script>
+const REFRESH_INTERVAL = {{ refresh_interval }} * 1000;
+
+// Section display order and titles
+const SECTIONS = [
+  { id: "core",   title: "📦 Core Stats"      },
+  { id: "health", title: "🩺 Health"           },
+  { id: "system", title: "🖥️ System"           },
+  { id: "fun",    title: "🎉 Fun Stats"        },
+];
+
+// Gauge metrics and their warning/alert thresholds
+const GAUGE_METRICS = {
+  "sensor.host_cpu_pct":  { warn: 60, alert: 85 },
+  "sensor.host_ram_pct":  { warn: 70, alert: 90 },
+  "sensor.host_disk_pct": { warn: 75, alert: 90 },
+};
+
+// Entities that should trigger an alert when value > 0
+const ALERT_WHEN_NONZERO = new Set([
+  "sensor.unavailable_count",
+  "sensor.unknown_count",
+]);
+
+// Quote entity
+const QUOTE_ENTITY = "sensor.random_daily_device_quote";
+// Mascot entity
+const MASCOT_ENTITY = "sensor.house_mascot";
+
+// String-valued entities (render in compact style)
+const STRING_ENTITIES = new Set([
+  "sensor.most_used_emoji",
+  "sensor.most_redundant_name",
+  "sensor.house_mascot",
+  "sensor.random_daily_device_quote",
+]);
+
+async function fetchStats() {
+  try {
+    const resp = await fetch("/api/stats");
+    if (!resp.ok) throw new Error(resp.statusText);
+    return await resp.json();
+  } catch (e) {
+    console.error("Failed to fetch stats:", e);
+    return null;
+  }
+}
+
+function gaugeClass(pct) {
+  if (pct >= 85) return "high";
+  if (pct >= 60) return "medium";
+  return "low";
+}
+
+function buildCard(entityId, data) {
+  const { label, state, section } = data;
+  const isUnavail = state === "unavailable" || state === "unknown";
+  const numVal = parseFloat(state);
+  const isNum = !isNaN(numVal);
+
+  // Party mode binary sensor
+  const isParty = entityId === "binary_sensor.everything_off_party_mode" && state === "on";
+
+  // Alert colouring
+  let alertAttr = "";
+  let warnAttr = "";
+  if (ALERT_WHEN_NONZERO.has(entityId) && isNum && numVal > 0) alertAttr = 'data-alert="true"';
+
+  if (GAUGE_METRICS[entityId] && isNum) {
+    const { warn, alert } = GAUGE_METRICS[entityId];
+    if (numVal >= alert) alertAttr = 'data-alert="true"';
+    else if (numVal >= warn) warnAttr = 'data-warn="true"';
+  }
+
+  // Skip quote in the grid — render separately
+  if (entityId === QUOTE_ENTITY) return "";
+
+  const compact = STRING_ENTITIES.has(entityId) ? " compact" : "";
+  const displayVal = isUnavail ? state : state;
+
+  let gauge = "";
+  if (GAUGE_METRICS[entityId] && isNum) {
+    const cls = gaugeClass(numVal);
+    const w = Math.min(numVal, 100).toFixed(1);
+    gauge = `<div class="gauge-bar"><div class="gauge-fill ${cls}" style="width:${w}%"></div></div>`;
+  }
+
+  return `
+    <div class="card"
+         data-entity="${entityId}"
+         data-state="${state}"
+         ${alertAttr}
+         ${warnAttr}
+         ${isParty ? 'data-party="true"' : ""}>
+      <div class="card-label">${label}</div>
+      <div class="card-value${compact}">${displayVal}</div>
+      ${gauge}
+    </div>`;
+}
+
+function render(stats) {
+  if (!stats) return;
+
+  // Group entities by section
+  const grouped = {};
+  for (const [eid, data] of Object.entries(stats)) {
+    const s = data.section;
+    if (!grouped[s]) grouped[s] = [];
+    grouped[s].push([eid, data]);
+  }
+
+  let html = "";
+
+  for (const { id, title } of SECTIONS) {
+    const items = grouped[id] || [];
+    if (!items.length) continue;
+
+    html += `<div class="section-title">${title}</div><div class="grid">`;
+    for (const [eid, data] of items) {
+      html += buildCard(eid, data);
+    }
+    html += `</div>`;
+  }
+
+  // Quote card at the bottom
+  const quote = stats[QUOTE_ENTITY];
+  const mascot = stats[MASCOT_ENTITY];
+  if (quote) {
+    const mascotText = mascot ? ` — ${mascot.state}` : "";
+    html += `<div class="quote-card">💬 ${quote.state}${mascotText}</div>`;
+  }
+
+  document.getElementById("app").innerHTML = html;
+  document.getElementById("last-updated").textContent =
+    "Last updated: " + new Date().toLocaleTimeString();
+}
+
+async function refresh() {
+  const stats = await fetchStats();
+  render(stats);
+}
+
+// Initial load + polling
+refresh();
+setInterval(refresh, REFRESH_INTERVAL);
+</script>
+</body>
+</html>

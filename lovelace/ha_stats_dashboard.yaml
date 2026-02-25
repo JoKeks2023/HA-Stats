@@ -1,0 +1,260 @@
+##############################################################################
+# Vibecoden HA Stats — Full Lovelace Dashboard
+#
+# To use this dashboard in Home Assistant:
+#  1. Go to Settings → Dashboards → Add Dashboard
+#  2. Choose "Start with an empty dashboard" and enable "Show in sidebar"
+#  3. Open the new dashboard, click the pencil icon → Raw configuration editor
+#  4. Paste the contents of this file (starting from "views:")
+#
+# Alternatively, copy this whole file to your HA config folder and reference it
+# with `lovelace:` in configuration.yaml (mode: yaml).
+##############################################################################
+
+title: 🏠 HA Stats
+views:
+  # ────────────────────────────────────────────────────────────────────────────
+  # View 1 – Overview
+  # ────────────────────────────────────────────────────────────────────────────
+  - title: Overview
+    icon: mdi:home-analytics
+    path: overview
+    cards:
+      # ── Markdown summary ────────────────────────────────────────────────────
+      - type: markdown
+        content: |
+          ## 🏠 Home at a Glance
+          | | |
+          |---|---|
+          | 📦 Devices | **{{ states('sensor.total_devices') }}** |
+          | 🔌 Entities | **{{ states('sensor.total_entities') }}** |
+          | 🧩 Integrations | **{{ states('sensor.integrations_count') }}** |
+          | 🏷️ Unique Domains | **{{ states('sensor.unique_domains_count') }}** |
+          | 💡 Lights On | **{{ states('sensor.lights_on') }}** |
+          | ⚠️ Unavailable | **{{ states('sensor.unavailable_count') }}** |
+          | ❓ Unknown State | **{{ states('sensor.unknown_count') }}** |
+          | ⚡ Energy (24 h) | **{{ states('sensor.energy_24h_kwh') }} kWh** |
+          | 🖥️ CPU / RAM / Disk | **{{ states('sensor.host_cpu_pct') }}% / {{ states('sensor.host_ram_pct') }}% / {{ states('sensor.host_disk_pct') }}%** |
+          | ⏱️ Uptime | **{{ states('sensor.uptime_hours') }} h** |
+          | 🦙 Mascot | {{ states('sensor.house_mascot') }} |
+          | 💬 Quote | *{{ states('sensor.random_daily_device_quote') }}* |
+
+      # ── Core stats glance ───────────────────────────────────────────────────
+      - type: glance
+        title: 📦 Core Stats
+        columns: 4
+        entities:
+          - entity: sensor.total_devices
+            name: Devices
+            icon: mdi:devices
+          - entity: sensor.total_entities
+            name: Entities
+            icon: mdi:format-list-bulleted
+          - entity: sensor.integrations_count
+            name: Integrations
+            icon: mdi:puzzle
+          - entity: sensor.unique_domains_count
+            name: Domains
+            icon: mdi:tag-multiple
+          - entity: sensor.automation_count
+            name: Automations
+            icon: mdi:robot
+          - entity: sensor.script_count
+            name: Scripts
+            icon: mdi:script-text
+          - entity: sensor.scene_count
+            name: Scenes
+            icon: mdi:palette
+          - entity: sensor.active_devices_24h
+            name: Active (24 h)
+            icon: mdi:pulse
+
+      # ── Health stats ────────────────────────────────────────────────────────
+      - type: glance
+        title: 🩺 Health
+        columns: 4
+        entities:
+          - entity: sensor.unavailable_count
+            name: Unavailable
+            icon: mdi:alert-circle-outline
+          - entity: sensor.unknown_count
+            name: Unknown
+            icon: mdi:help-circle-outline
+          - entity: sensor.disabled_entities
+            name: Disabled
+            icon: mdi:eye-off-outline
+          - entity: sensor.lights_on
+            name: Lights On
+            icon: mdi:lightbulb-on
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # View 2 – System Performance
+  # ────────────────────────────────────────────────────────────────────────────
+  - title: System
+    icon: mdi:server
+    path: system
+    cards:
+      - type: gauge
+        entity: sensor.host_cpu_pct
+        name: CPU Usage
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 60
+          red: 85
+        needle: true
+
+      - type: gauge
+        entity: sensor.host_ram_pct
+        name: RAM Usage
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 70
+          red: 90
+        needle: true
+
+      - type: gauge
+        entity: sensor.host_disk_pct
+        name: Disk Usage (/)
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 75
+          red: 90
+        needle: true
+
+      - type: entities
+        title: ⏱️ Uptime
+        entities:
+          - entity: sensor.uptime_days
+            name: Uptime (days)
+            icon: mdi:timer-outline
+          - entity: sensor.uptime_hours
+            name: Uptime (hours)
+            icon: mdi:clock-outline
+
+      - type: history-graph
+        title: CPU History
+        hours_to_show: 24
+        entities:
+          - entity: sensor.host_cpu_pct
+            name: CPU %
+
+      - type: history-graph
+        title: RAM History
+        hours_to_show: 24
+        entities:
+          - entity: sensor.host_ram_pct
+            name: RAM %
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # View 3 – Entity Breakdown
+  # ────────────────────────────────────────────────────────────────────────────
+  - title: Entities
+    icon: mdi:format-list-bulleted
+    path: entities
+    cards:
+      - type: entities
+        title: 🔌 Entity Counts by Domain
+        entities:
+          - entity: sensor.light_count
+            name: Lights
+            icon: mdi:lightbulb-multiple
+          - entity: sensor.switch_count
+            name: Switches
+            icon: mdi:toggle-switch
+          - entity: sensor.binary_sensor_count
+            name: Binary Sensors
+            icon: mdi:radiobox-marked
+          - entity: sensor.sensor_count
+            name: Sensors
+            icon: mdi:thermometer
+          - entity: sensor.automation_count
+            name: Automations
+            icon: mdi:robot
+          - entity: sensor.script_count
+            name: Scripts
+            icon: mdi:script-text
+          - entity: sensor.scene_count
+            name: Scenes
+            icon: mdi:palette
+          - entity: sensor.person_count
+            name: Persons
+            icon: mdi:account-group
+          - entity: sensor.camera_count
+            name: Cameras
+            icon: mdi:cctv
+          - entity: sensor.media_player_count
+            name: Media Players
+            icon: mdi:speaker
+          - entity: sensor.cover_count
+            name: Covers / Blinds
+            icon: mdi:window-shutter
+          - entity: sensor.climate_count
+            name: Climate / Thermostats
+            icon: mdi:thermostat
+
+      - type: entity
+        entity: sensor.energy_24h_kwh
+        name: ⚡ Energy Total (24 h)
+        icon: mdi:lightning-bolt
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # View 4 – Fun Stats
+  # ────────────────────────────────────────────────────────────────────────────
+  - title: Fun Stats
+    icon: mdi:party-popper
+    path: fun
+    cards:
+      - type: markdown
+        content: |
+          ## 🎉 Fun Stats & Achievements
+
+          > *"Because your smart home deserves its own hall of fame."*
+
+      - type: grid
+        columns: 2
+        cards:
+          - type: entity
+            entity: sensor.most_used_emoji
+            name: Most Used Emoji
+            icon: mdi:emoticon-outline
+          - type: entity
+            entity: sensor.devices_named_after_pokemon
+            name: Pokémon Devices
+            icon: mdi:pokeball
+          - type: entity
+            entity: sensor.emoji_density
+            name: Emoji Density
+            icon: mdi:percent
+          - type: entity
+            entity: sensor.avg_entity_id_length
+            name: Avg Entity ID Length
+            icon: mdi:ruler
+          - type: entity
+            entity: sensor.most_redundant_name
+            name: Most Redundant Name
+            icon: mdi:content-duplicate
+          - type: entity
+            entity: sensor.names_with_numbers
+            name: Names With Numbers
+            icon: mdi:numeric
+          - type: entity
+            entity: sensor.house_mascot
+            name: Today's Mascot 🦙
+            icon: mdi:home-heart
+          - type: entity
+            entity: binary_sensor.everything_off_party_mode
+            name: Party Mode 🎉
+            icon: mdi:party-popper
+
+      - type: entities
+        title: 💬 Daily Device Wisdom
+        entities:
+          - entity: sensor.random_daily_device_quote
+            name: Today's Quote
+            icon: mdi:comment-quote
