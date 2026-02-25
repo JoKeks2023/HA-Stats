@@ -41,7 +41,7 @@ class VibeSensorDescription(SensorEntityDescription):
 
 CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
     VibeSensorDescription(
-        key="vibe_total_devices",
+        key="total_devices",
         name="Total Devices",
         icon="mdi:devices",
         state_class=SensorStateClass.MEASUREMENT,
@@ -49,7 +49,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="total_devices",
     ),
     VibeSensorDescription(
-        key="vibe_total_entities",
+        key="total_entities",
         name="Total Entities",
         icon="mdi:format-list-bulleted",
         state_class=SensorStateClass.MEASUREMENT,
@@ -58,7 +58,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         extra_attrs={"domain_breakdown": "domain_counts"},
     ),
     VibeSensorDescription(
-        key="vibe_integrations_count",
+        key="integrations_count",
         name="Integrations Count",
         icon="mdi:puzzle",
         state_class=SensorStateClass.MEASUREMENT,
@@ -66,7 +66,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="integrations_count",
     ),
     VibeSensorDescription(
-        key="vibe_automation_count",
+        key="automation_count",
         name="Automation Count",
         icon="mdi:robot",
         state_class=SensorStateClass.MEASUREMENT,
@@ -74,7 +74,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="automation_count",
     ),
     VibeSensorDescription(
-        key="vibe_script_count",
+        key="script_count",
         name="Script Count",
         icon="mdi:script-text",
         state_class=SensorStateClass.MEASUREMENT,
@@ -82,7 +82,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="script_count",
     ),
     VibeSensorDescription(
-        key="vibe_scene_count",
+        key="scene_count",
         name="Scene Count",
         icon="mdi:palette",
         state_class=SensorStateClass.MEASUREMENT,
@@ -90,7 +90,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="scene_count",
     ),
     VibeSensorDescription(
-        key="vibe_light_count",
+        key="light_count",
         name="Light Count",
         icon="mdi:lightbulb-multiple",
         state_class=SensorStateClass.MEASUREMENT,
@@ -98,7 +98,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="light_count",
     ),
     VibeSensorDescription(
-        key="vibe_switch_count",
+        key="switch_count",
         name="Switch Count",
         icon="mdi:toggle-switch",
         state_class=SensorStateClass.MEASUREMENT,
@@ -106,7 +106,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="switch_count",
     ),
     VibeSensorDescription(
-        key="vibe_binary_sensor_count",
+        key="binary_sensor_count",
         name="Binary Sensor Count",
         icon="mdi:radiobox-marked",
         state_class=SensorStateClass.MEASUREMENT,
@@ -114,7 +114,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="binary_sensor_count",
     ),
     VibeSensorDescription(
-        key="vibe_sensor_count",
+        key="sensor_count",
         name="Sensor Count",
         icon="mdi:thermometer",
         state_class=SensorStateClass.MEASUREMENT,
@@ -122,7 +122,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="sensor_count",
     ),
     VibeSensorDescription(
-        key="vibe_person_count",
+        key="person_count",
         name="Person Count",
         icon="mdi:account-group",
         state_class=SensorStateClass.MEASUREMENT,
@@ -130,7 +130,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="person_count",
     ),
     VibeSensorDescription(
-        key="vibe_camera_count",
+        key="camera_count",
         name="Camera Count",
         icon="mdi:cctv",
         state_class=SensorStateClass.MEASUREMENT,
@@ -138,7 +138,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="camera_count",
     ),
     VibeSensorDescription(
-        key="vibe_media_player_count",
+        key="media_player_count",
         name="Media Player Count",
         icon="mdi:speaker",
         state_class=SensorStateClass.MEASUREMENT,
@@ -146,7 +146,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="media_player_count",
     ),
     VibeSensorDescription(
-        key="vibe_cover_count",
+        key="cover_count",
         name="Cover Count",
         icon="mdi:window-shutter",
         state_class=SensorStateClass.MEASUREMENT,
@@ -154,7 +154,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="cover_count",
     ),
     VibeSensorDescription(
-        key="vibe_climate_count",
+        key="climate_count",
         name="Climate Count",
         icon="mdi:thermostat",
         state_class=SensorStateClass.MEASUREMENT,
@@ -162,7 +162,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="climate_count",
     ),
     VibeSensorDescription(
-        key="vibe_unique_domains_count",
+        key="unique_domains_count",
         name="Unique Domains",
         icon="mdi:tag-multiple",
         state_class=SensorStateClass.MEASUREMENT,
@@ -170,7 +170,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="unique_domains_count",
     ),
     VibeSensorDescription(
-        key="vibe_unavailable_count",
+        key="unavailable_count",
         name="Unavailable Entities",
         icon="mdi:alert-circle-outline",
         state_class=SensorStateClass.MEASUREMENT,
@@ -178,7 +178,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="unavailable_count",
     ),
     VibeSensorDescription(
-        key="vibe_unknown_count",
+        key="unknown_count",
         name="Unknown State Entities",
         icon="mdi:help-circle-outline",
         state_class=SensorStateClass.MEASUREMENT,
@@ -186,7 +186,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="unknown_count",
     ),
     VibeSensorDescription(
-        key="vibe_disabled_entities",
+        key="disabled_entities",
         name="Disabled Entities",
         icon="mdi:eye-off-outline",
         state_class=SensorStateClass.MEASUREMENT,
@@ -194,7 +194,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="disabled_entities",
     ),
     VibeSensorDescription(
-        key="vibe_lights_on",
+        key="lights_on",
         name="Lights Currently On",
         icon="mdi:lightbulb-on",
         state_class=SensorStateClass.MEASUREMENT,
@@ -202,7 +202,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="lights_on",
     ),
     VibeSensorDescription(
-        key="vibe_uptime_days",
+        key="uptime_days",
         name="Uptime (Days)",
         icon="mdi:timer-outline",
         native_unit_of_measurement=UnitOfTime.DAYS,
@@ -211,7 +211,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="uptime_days",
     ),
     VibeSensorDescription(
-        key="vibe_uptime_hours",
+        key="uptime_hours",
         name="Uptime (Hours)",
         icon="mdi:clock-outline",
         native_unit_of_measurement=UnitOfTime.HOURS,
@@ -220,7 +220,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="uptime_hours",
     ),
     VibeSensorDescription(
-        key="vibe_active_devices_24h",
+        key="active_devices_24h",
         name="Active Entities (24 h)",
         icon="mdi:pulse",
         state_class=SensorStateClass.MEASUREMENT,
@@ -228,7 +228,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="active_entities_24h",
     ),
     VibeSensorDescription(
-        key="vibe_host_cpu_pct",
+        key="host_cpu_pct",
         name="Host CPU Usage",
         icon="mdi:cpu-64-bit",
         native_unit_of_measurement=PERCENTAGE,
@@ -237,7 +237,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="host_cpu_pct",
     ),
     VibeSensorDescription(
-        key="vibe_host_ram_pct",
+        key="host_ram_pct",
         name="Host RAM Usage",
         icon="mdi:memory",
         native_unit_of_measurement=PERCENTAGE,
@@ -246,7 +246,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="host_ram_pct",
     ),
     VibeSensorDescription(
-        key="vibe_host_disk_pct",
+        key="host_disk_pct",
         name="Host Disk Usage",
         icon="mdi:harddisk",
         native_unit_of_measurement=PERCENTAGE,
@@ -255,7 +255,7 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="host_disk_pct",
     ),
     VibeSensorDescription(
-        key="vibe_energy_24h_kwh",
+        key="energy_24h_kwh",
         name="Energy Total (kWh)",
         icon="mdi:lightning-bolt",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
@@ -271,14 +271,14 @@ CORE_SENSORS: tuple[VibeSensorDescription, ...] = (
 
 FUN_SENSORS: tuple[VibeSensorDescription, ...] = (
     VibeSensorDescription(
-        key="vibe_most_used_emoji",
+        key="most_used_emoji",
         name="Most Used Emoji",
         icon="mdi:emoticon-outline",
         data_section="fun",
         data_key="most_used_emoji",
     ),
     VibeSensorDescription(
-        key="vibe_avg_entity_id_length",
+        key="avg_entity_id_length",
         name="Avg Entity ID Length",
         icon="mdi:ruler",
         native_unit_of_measurement="chars",
@@ -291,7 +291,7 @@ FUN_SENSORS: tuple[VibeSensorDescription, ...] = (
         },
     ),
     VibeSensorDescription(
-        key="vibe_devices_named_after_pokemon",
+        key="devices_named_after_pokemon",
         name="Devices Named After Pokémon",
         icon="mdi:pokeball",
         state_class=SensorStateClass.MEASUREMENT,
@@ -299,7 +299,7 @@ FUN_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="devices_named_after_pokemon",
     ),
     VibeSensorDescription(
-        key="vibe_emoji_density",
+        key="emoji_density",
         name="Emoji Density",
         icon="mdi:percent",
         native_unit_of_measurement=PERCENTAGE,
@@ -308,14 +308,14 @@ FUN_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="emoji_density",
     ),
     VibeSensorDescription(
-        key="vibe_most_redundant_name",
+        key="most_redundant_name",
         name="Most Redundant Name",
         icon="mdi:content-duplicate",
         data_section="fun",
         data_key="most_redundant_name",
     ),
     VibeSensorDescription(
-        key="vibe_names_with_numbers",
+        key="names_with_numbers",
         name="Entity Names Containing Numbers",
         icon="mdi:numeric",
         state_class=SensorStateClass.MEASUREMENT,
@@ -323,14 +323,14 @@ FUN_SENSORS: tuple[VibeSensorDescription, ...] = (
         data_key="names_with_numbers",
     ),
     VibeSensorDescription(
-        key="vibe_random_daily_device_quote",
+        key="random_daily_device_quote",
         name="Random Daily Device Quote",
         icon="mdi:comment-quote",
         data_section="fun",
         data_key="random_daily_quote",
     ),
     VibeSensorDescription(
-        key="vibe_house_mascot",
+        key="house_mascot",
         name="House Mascot",
         icon="mdi:home-heart",
         data_section="fun",

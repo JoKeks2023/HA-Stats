@@ -31,7 +31,7 @@ class VibeBinarySensorDescription(BinarySensorEntityDescription):
 
 BINARY_SENSORS: tuple[VibeBinarySensorDescription, ...] = (
     VibeBinarySensorDescription(
-        key="vibe_everything_off_party_mode",
+        key="everything_off_party_mode",
         name="Everything Off (Party Mode)",
         icon="mdi:party-popper",
         data_section="fun",

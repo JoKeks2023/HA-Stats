@@ -74,47 +74,47 @@ After installation, click **Configure** on the integration card to adjust:
 
 | Entity ID | Unit | Description |
 |---|---|---|
-| `sensor.vibe_total_devices` | — | Total devices in device registry |
-| `sensor.vibe_total_entities` | — | Total entity states (with domain breakdown attribute) |
-| `sensor.vibe_integrations_count` | — | Number of configured integrations |
-| `sensor.vibe_unique_domains_count` | — | Number of unique entity domains |
-| `sensor.vibe_automation_count` | — | Number of automation entities |
-| `sensor.vibe_script_count` | — | Number of script entities |
-| `sensor.vibe_scene_count` | — | Number of scene entities |
-| `sensor.vibe_light_count` | — | Number of light entities |
-| `sensor.vibe_switch_count` | — | Number of switch entities |
-| `sensor.vibe_binary_sensor_count` | — | Number of binary sensor entities |
-| `sensor.vibe_sensor_count` | — | Number of sensor entities |
-| `sensor.vibe_person_count` | — | Number of person entities |
-| `sensor.vibe_camera_count` | — | Number of camera entities |
-| `sensor.vibe_media_player_count` | — | Number of media player entities |
-| `sensor.vibe_cover_count` | — | Number of cover/blind entities |
-| `sensor.vibe_climate_count` | — | Number of climate/thermostat entities |
-| `sensor.vibe_unavailable_count` | — | Entities currently in `unavailable` state |
-| `sensor.vibe_unknown_count` | — | Entities currently in `unknown` state |
-| `sensor.vibe_disabled_entities` | — | Disabled entities in entity registry |
-| `sensor.vibe_lights_on` | — | Lights currently switched on |
-| `sensor.vibe_uptime_days` | days | Host uptime in days (psutil) |
-| `sensor.vibe_uptime_hours` | h | Host uptime in hours (psutil) |
-| `sensor.vibe_active_devices_24h` | — | Entities that changed state in last 24 h |
-| `sensor.vibe_host_cpu_pct` | % | Host CPU usage (psutil) |
-| `sensor.vibe_host_ram_pct` | % | Host RAM usage (psutil) |
-| `sensor.vibe_host_disk_pct` | % | Host disk (/) usage (psutil) |
-| `sensor.vibe_energy_24h_kwh` | kWh | Sum of all energy sensor states |
+| `sensor.total_devices` | — | Total devices in device registry |
+| `sensor.total_entities` | — | Total entity states (with domain breakdown attribute) |
+| `sensor.integrations_count` | — | Number of configured integrations |
+| `sensor.unique_domains_count` | — | Number of unique entity domains |
+| `sensor.automation_count` | — | Number of automation entities |
+| `sensor.script_count` | — | Number of script entities |
+| `sensor.scene_count` | — | Number of scene entities |
+| `sensor.light_count` | — | Number of light entities |
+| `sensor.switch_count` | — | Number of switch entities |
+| `sensor.binary_sensor_count` | — | Number of binary sensor entities |
+| `sensor.sensor_count` | — | Number of sensor entities |
+| `sensor.person_count` | — | Number of person entities |
+| `sensor.camera_count` | — | Number of camera entities |
+| `sensor.media_player_count` | — | Number of media player entities |
+| `sensor.cover_count` | — | Number of cover/blind entities |
+| `sensor.climate_count` | — | Number of climate/thermostat entities |
+| `sensor.unavailable_count` | — | Entities currently in `unavailable` state |
+| `sensor.unknown_count` | — | Entities currently in `unknown` state |
+| `sensor.disabled_entities` | — | Disabled entities in entity registry |
+| `sensor.lights_on` | — | Lights currently switched on |
+| `sensor.uptime_days` | days | Host uptime in days (psutil) |
+| `sensor.uptime_hours` | h | Host uptime in hours (psutil) |
+| `sensor.active_devices_24h` | — | Entities that changed state in last 24 h |
+| `sensor.host_cpu_pct` | % | Host CPU usage (psutil) |
+| `sensor.host_ram_pct` | % | Host RAM usage (psutil) |
+| `sensor.host_disk_pct` | % | Host disk (/) usage (psutil) |
+| `sensor.energy_24h_kwh` | kWh | Sum of all energy sensor states |
 
 ### Fun sensors *(toggleable via Options)*
 
 | Entity ID | Description |
 |---|---|
-| `sensor.vibe_most_used_emoji` | Most frequent emoji across friendly names |
-| `sensor.vibe_avg_entity_id_length` | Average character length of entity IDs (+ longest/shortest as attributes) |
-| `sensor.vibe_devices_named_after_pokemon` | Devices whose names contain a Pokémon name |
-| `sensor.vibe_emoji_density` | % of friendly-name characters that are emojis |
-| `sensor.vibe_most_redundant_name` | Most duplicated friendly name |
-| `sensor.vibe_names_with_numbers` | Count of entity names that contain a digit |
-| `sensor.vibe_random_daily_device_quote` | Rotates daily — motivational device wisdom |
-| `sensor.vibe_house_mascot` | Your home's daily spirit animal 🦙 |
-| `binary_sensor.vibe_everything_off_party_mode` | `on` when zero lights are on |
+| `sensor.most_used_emoji` | Most frequent emoji across friendly names |
+| `sensor.avg_entity_id_length` | Average character length of entity IDs (+ longest/shortest as attributes) |
+| `sensor.devices_named_after_pokemon` | Devices whose names contain a Pokémon name |
+| `sensor.emoji_density` | % of friendly-name characters that are emojis |
+| `sensor.most_redundant_name` | Most duplicated friendly name |
+| `sensor.names_with_numbers` | Count of entity names that contain a digit |
+| `sensor.random_daily_device_quote` | Rotates daily — motivational device wisdom |
+| `sensor.house_mascot` | Your home's daily spirit animal 🦙 |
+| `binary_sensor.everything_off_party_mode` | `on` when zero lights are on |
 
 ---
 
@@ -126,37 +126,37 @@ After installation, click **Configure** on the integration card to adjust:
 type: entities
 title: 🏠 HA Stats Overview
 entities:
-  - entity: sensor.vibe_total_devices
+  - entity: sensor.total_devices
     name: Total Devices
     icon: mdi:devices
-  - entity: sensor.vibe_total_entities
+  - entity: sensor.total_entities
     name: Total Entities
     icon: mdi:format-list-bulleted
-  - entity: sensor.vibe_integrations_count
+  - entity: sensor.integrations_count
     name: Integrations
     icon: mdi:puzzle
-  - entity: sensor.vibe_unique_domains_count
+  - entity: sensor.unique_domains_count
     name: Unique Domains
     icon: mdi:tag-multiple
-  - entity: sensor.vibe_automation_count
+  - entity: sensor.automation_count
     name: Automations
     icon: mdi:robot
-  - entity: sensor.vibe_unavailable_count
+  - entity: sensor.unavailable_count
     name: Unavailable
     icon: mdi:alert-circle-outline
-  - entity: sensor.vibe_lights_on
+  - entity: sensor.lights_on
     name: Lights On
     icon: mdi:lightbulb-on
-  - entity: sensor.vibe_uptime_hours
+  - entity: sensor.uptime_hours
     name: Uptime (h)
     icon: mdi:clock-outline
-  - entity: sensor.vibe_host_cpu_pct
+  - entity: sensor.host_cpu_pct
     name: CPU
     icon: mdi:cpu-64-bit
-  - entity: sensor.vibe_host_ram_pct
+  - entity: sensor.host_ram_pct
     name: RAM
     icon: mdi:memory
-  - entity: sensor.vibe_host_disk_pct
+  - entity: sensor.host_disk_pct
     name: Disk
     icon: mdi:harddisk
 ```
@@ -168,31 +168,31 @@ type: grid
 columns: 2
 cards:
   - type: entity
-    entity: sensor.vibe_most_used_emoji
+    entity: sensor.most_used_emoji
     name: Most Used Emoji
     icon: mdi:emoticon-outline
   - type: entity
-    entity: sensor.vibe_devices_named_after_pokemon
+    entity: sensor.devices_named_after_pokemon
     name: Pokémon Devices
     icon: mdi:pokeball
   - type: entity
-    entity: sensor.vibe_emoji_density
+    entity: sensor.emoji_density
     name: Emoji Density
     icon: mdi:percent
   - type: entity
-    entity: sensor.vibe_house_mascot
+    entity: sensor.house_mascot
     name: Today's Mascot
     icon: mdi:home-heart
   - type: entity
-    entity: sensor.vibe_most_redundant_name
+    entity: sensor.most_redundant_name
     name: Most Redundant Name
     icon: mdi:content-duplicate
   - type: entity
-    entity: sensor.vibe_names_with_numbers
+    entity: sensor.names_with_numbers
     name: Names with Numbers
     icon: mdi:numeric
   - type: entity
-    entity: binary_sensor.vibe_everything_off_party_mode
+    entity: binary_sensor.everything_off_party_mode
     name: Party Mode 🎉
     icon: mdi:party-popper
 ```
@@ -206,15 +206,15 @@ content: |
 
   | | |
   |---|---|
-  | 📦 Devices | **{{ states('sensor.vibe_total_devices') }}** |
-  | 🔌 Entities | **{{ states('sensor.vibe_total_entities') }}** |
-  | 🧩 Integrations | **{{ states('sensor.vibe_integrations_count') }}** |
-  | 💡 Lights On | **{{ states('sensor.vibe_lights_on') }}** |
-  | ⚠️ Unavailable | **{{ states('sensor.vibe_unavailable_count') }}** |
-  | ⚡ Energy Total | **{{ states('sensor.vibe_energy_24h_kwh') }} kWh** |
-  | 🖥️ CPU / RAM | **{{ states('sensor.vibe_host_cpu_pct') }}% / {{ states('sensor.vibe_host_ram_pct') }}%** |
-  | 🦙 Mascot | {{ states('sensor.vibe_house_mascot') }} |
-  | 💬 Quote | *{{ states('sensor.vibe_random_daily_device_quote') }}* |
+  | 📦 Devices | **{{ states('sensor.total_devices') }}** |
+  | 🔌 Entities | **{{ states('sensor.total_entities') }}** |
+  | 🧩 Integrations | **{{ states('sensor.integrations_count') }}** |
+  | 💡 Lights On | **{{ states('sensor.lights_on') }}** |
+  | ⚠️ Unavailable | **{{ states('sensor.unavailable_count') }}** |
+  | ⚡ Energy Total | **{{ states('sensor.energy_24h_kwh') }} kWh** |
+  | 🖥️ CPU / RAM | **{{ states('sensor.host_cpu_pct') }}% / {{ states('sensor.host_ram_pct') }}%** |
+  | 🦙 Mascot | {{ states('sensor.house_mascot') }} |
+  | 💬 Quote | *{{ states('sensor.random_daily_device_quote') }}* |
 ```
 
 ---
