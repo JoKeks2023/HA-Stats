@@ -118,6 +118,70 @@ After installation, click **Configure** on the integration card to adjust:
 
 ---
 
+## 🖥️ Add-on Dashboard (Full Custom App)
+
+A standalone web dashboard is provided as a Home Assistant add-on in the
+`ha_addon/` directory. It fetches live data from the HA REST API and renders
+every stat in a beautiful dark-mode card UI with:
+
+- **Colour-coded alerts** — Unavailable / Unknown entities turn red automatically
+- **Gauge bars** — CPU, RAM and Disk show a live bar (green → yellow → red)
+- **Auto-refresh** — configurable polling interval (default 30 s)
+- **Daily quote** — scrolls across the bottom with the house mascot
+
+### Installation
+
+1. In Home Assistant go to **Settings → Add-ons → Add-on Store → ⋮ → Repositories**.
+2. Add `https://github.com/JoKeks2023/HA-Stats` and install
+   **Vibecoden HA Stats Dashboard**.
+3. Click **Start** — the dashboard appears as a sidebar panel called **HA Stats**.
+
+### Manual install (for development)
+
+```bash
+# Copy the add-on folder to your HA add-ons directory
+cp -r ha_addon/ /path/to/homeassistant/addons/vibecoden_ha_stats_dashboard/
+
+# Rebuild and start from the add-on store UI
+```
+
+### Add-on structure
+
+```
+ha_addon/
+├── config.yaml          # Add-on metadata, ports, options schema
+├── Dockerfile           # Python + Flask image
+├── run.sh               # Startup script (reads Supervisor config)
+└── app/
+    ├── app.py           # Flask app — serves / and /api/stats
+    └── templates/
+        └── index.html   # Single-page dashboard (vanilla JS)
+```
+
+---
+
+## 📋 Lovelace Dashboard YAML
+
+A ready-to-use Lovelace dashboard is provided at
+[`lovelace/ha_stats_dashboard.yaml`](lovelace/ha_stats_dashboard.yaml).
+It contains four views:
+
+| View | Contents |
+|---|---|
+| **Overview** | Markdown summary + core & health glance cards |
+| **System** | CPU / RAM / Disk gauges + uptime + history graphs |
+| **Entities** | Full entity-count breakdown by domain |
+| **Fun Stats** | All fun sensors in a 2-column grid + daily quote |
+
+### How to use
+
+1. Go to **Settings → Dashboards → Add Dashboard**.
+2. Enable **Show in sidebar**, choose a title (e.g. *HA Stats*).
+3. Click the pencil ✏️ icon → **Raw configuration editor**.
+4. Paste the contents of `lovelace/ha_stats_dashboard.yaml` (starting from `views:`).
+
+---
+
 ## 🎨 Lovelace / Dashboard Examples
 
 ### 1 — Stats Overview Card
