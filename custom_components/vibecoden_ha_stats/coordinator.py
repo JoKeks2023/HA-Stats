@@ -1,13 +1,12 @@
 """Vibecoden HA Stats — DataUpdateCoordinator."""
 from __future__ import annotations
 
-import asyncio
 import datetime
 import logging
 import re
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -67,9 +66,19 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             core = await self._collect_core_stats()
             fun: dict[str, Any] = {}
             if self.enable_fun_stats:
-                # Fun stats are CPU-light string operations — run on event loop
-                fun = await asyncio.get_event_loop().run_in_executor(
-                    None, self._collect_fun_stats_sync
+                # Capture states on the event loop before handing off to a thread.
+                # hass.states.async_all() is NOT thread-safe and must only be
+                # called from the event loop.
+                all_states = self.hass.states.async_all()
+                everything_off = not any(
+                    s.state == "on"
+                    for s in all_states
+                    if s.entity_id.startswith("light.")
+                )
+                # CPU-light string operations — run in executor to avoid
+                # blocking the event loop.
+                fun = await self.hass.async_add_executor_job(
+                    self._collect_fun_stats_sync, all_states, everything_off
                 )
             return {"core": core, "fun": fun}
         except Exception as err:
@@ -87,37 +96,63 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         all_states = hass.states.async_all()
         total_entities: int = len(all_states)
 
+        total_devices: int = 0
         try:
             from homeassistant.helpers import device_registry as dr
             dev_reg = dr.async_get(hass)
-            total_devices: int = len(dev_reg.devices)
+            total_devices = len(dev_reg.devices)
         except Exception:
             _LOGGER.debug("Could not access device registry", exc_info=True)
-            total_devices = 0
+
+        # ── Entity registry stats ────────────────────────────────────
+        disabled_entities: int = 0
+        try:
+            from homeassistant.helpers import entity_registry as er
+            ent_reg = er.async_get(hass)
+            disabled_entities = sum(
+                1 for e in ent_reg.entities.values() if e.disabled
+            )
+        except Exception:
+            _LOGGER.debug("Could not access entity registry", exc_info=True)
 
         # ── Integration count ────────────────────────────────────────
         integrations_count: int = len(hass.config_entries.async_entries())
 
         # ── Domain-specific counts ───────────────────────────────────
-        automation_count: int = sum(
-            1 for s in all_states if s.entity_id.startswith("automation.")
-        )
-        script_count: int = sum(
-            1 for s in all_states if s.entity_id.startswith("script.")
-        )
-        scene_count: int = sum(
-            1 for s in all_states if s.entity_id.startswith("scene.")
-        )
+        domain_counts: dict[str, int] = {}
+        unavailable_count: int = 0
+        unknown_count: int = 0
+        for s in all_states:
+            domain = s.entity_id.split(".")[0]
+            domain_counts[domain] = domain_counts.get(domain, 0) + 1
+            if s.state == "unavailable":
+                unavailable_count += 1
+            elif s.state == "unknown":
+                unknown_count += 1
 
-        # ── Uptime (days) ─────────────────────────────────────────────
-        # hass.data may carry a 'started' timestamp set at boot in newer HA
-        # versions; fall back to 0 if unavailable.
+        automation_count: int = domain_counts.get("automation", 0)
+        script_count: int = domain_counts.get("script", 0)
+        scene_count: int = domain_counts.get("scene", 0)
+        light_count: int = domain_counts.get("light", 0)
+        switch_count: int = domain_counts.get("switch", 0)
+        binary_sensor_count: int = domain_counts.get("binary_sensor", 0)
+        sensor_count: int = domain_counts.get("sensor", 0)
+        person_count: int = domain_counts.get("person", 0)
+        camera_count: int = domain_counts.get("camera", 0)
+        media_player_count: int = domain_counts.get("media_player", 0)
+        cover_count: int = domain_counts.get("cover", 0)
+        climate_count: int = domain_counts.get("climate", 0)
+        unique_domains_count: int = len(domain_counts)
+
+        # ── Uptime ────────────────────────────────────────────────────
+        # psutil.boot_time() returns the host OS boot timestamp.
+        # We fall back to 0 if psutil is unavailable.
         uptime_days: int = 0
+        uptime_hours: float = 0.0
         try:
             import homeassistant.util.dt as dt_util
             boot_time: datetime.datetime | None = None
 
-            # Try getting boot time via psutil (optional)
             try:
                 import psutil  # type: ignore[import]
                 boot_ts = psutil.boot_time()
@@ -131,76 +166,125 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if boot_time is not None:
                 delta = dt_util.utcnow() - boot_time
                 uptime_days = max(0, delta.days)
+                uptime_hours = round(max(0.0, delta.total_seconds() / 3600), 1)
         except Exception:
             _LOGGER.debug("Could not calculate uptime", exc_info=True)
 
-        # ── Active devices in last 24h ────────────────────────────────
-        # A device is "active" if any of its entities changed state in the last 24h.
+        # ── Active entities in last 24h ───────────────────────────────
+        active_entities_24h: int = 0
         try:
             import homeassistant.util.dt as dt_util
             cutoff = dt_util.utcnow() - datetime.timedelta(hours=24)
-            active_entities_24h: int = sum(
+            active_entities_24h = sum(
                 1
                 for s in all_states
                 if s.last_changed is not None and s.last_changed >= cutoff
             )
         except Exception:
-            active_entities_24h = 0
+            _LOGGER.debug("Could not calculate active entities", exc_info=True)
 
         # ── Host telemetry (CPU / RAM) ────────────────────────────────
         host_cpu_pct: float | None = None
         host_ram_pct: float | None = None
+        host_disk_pct: float | None = None
 
         if self.enable_host_telemetry:
             try:
                 import psutil  # type: ignore[import]
 
                 # psutil calls are blocking — push to thread pool
-                def _read_psutil() -> tuple[float, float]:
+                def _read_psutil() -> tuple[float, float, float]:
                     cpu = psutil.cpu_percent(interval=0.5)
                     ram = psutil.virtual_memory().percent
-                    return cpu, ram
+                    disk = psutil.disk_usage("/").percent
+                    return cpu, ram, disk
 
-                host_cpu_pct, host_ram_pct = await self.hass.async_add_executor_job(
-                    _read_psutil
+                host_cpu_pct, host_ram_pct, host_disk_pct = (
+                    await self.hass.async_add_executor_job(_read_psutil)
                 )
-                _LOGGER.debug("CPU: %.1f%% / RAM: %.1f%%", host_cpu_pct, host_ram_pct)
+                _LOGGER.debug(
+                    "CPU: %.1f%% / RAM: %.1f%% / Disk: %.1f%%",
+                    host_cpu_pct, host_ram_pct, host_disk_pct,
+                )
             except ImportError:
                 _LOGGER.debug(
                     "psutil not installed — host telemetry unavailable. "
-                    "Install it or disable host telemetry in options."
+                    "Install psutil or disable host telemetry in options."
                 )
             except Exception:
                 _LOGGER.debug("Error reading host telemetry", exc_info=True)
 
-        # ── Energy sensors (last 24 h sum) ────────────────────────────
+        # ── Energy sensors (current state sum) ────────────────────────
+        # Note: we sum the *current* state values of all energy (kWh/Wh)
+        # sensors as a proxy for 24h consumption. For accurate historical
+        # totals, HA's Statistics subsystem would need to be queried.
         energy_24h_kwh: float = 0.0
+        energy_entity_count: int = 0
         try:
-            energy_24h_kwh = self._aggregate_energy(all_states)
+            energy_24h_kwh, energy_entity_count = self._aggregate_energy(all_states)
         except Exception:
             _LOGGER.debug("Could not aggregate energy stats", exc_info=True)
+
+        # ── Lights currently on ───────────────────────────────────────
+        lights_on: int = sum(
+            1 for s in all_states
+            if s.entity_id.startswith("light.") and s.state == "on"
+        )
 
         return {
             "total_entities": total_entities,
             "total_devices": total_devices,
+            "disabled_entities": disabled_entities,
             "integrations_count": integrations_count,
+            "unique_domains_count": unique_domains_count,
+            "domain_counts": domain_counts,
+            "unavailable_count": unavailable_count,
+            "unknown_count": unknown_count,
             "automation_count": automation_count,
             "script_count": script_count,
             "scene_count": scene_count,
+            "light_count": light_count,
+            "switch_count": switch_count,
+            "binary_sensor_count": binary_sensor_count,
+            "sensor_count": sensor_count,
+            "person_count": person_count,
+            "camera_count": camera_count,
+            "media_player_count": media_player_count,
+            "cover_count": cover_count,
+            "climate_count": climate_count,
+            "lights_on": lights_on,
             "uptime_days": uptime_days,
+            "uptime_hours": uptime_hours,
             "active_entities_24h": active_entities_24h,
             "host_cpu_pct": host_cpu_pct,
             "host_ram_pct": host_ram_pct,
+            "host_disk_pct": host_disk_pct,
             "energy_24h_kwh": energy_24h_kwh,
+            "energy_entity_count": energy_entity_count,
         }
 
     # ------------------------------------------------------------------
-    # Fun / useless stats (runs in executor thread to keep event loop free)
+    # Fun / useless stats
+    # NOTE: This method is called via async_add_executor_job, so it runs
+    # in a worker thread.  It must NOT access hass directly — all HA data
+    # must be passed in as arguments captured on the event loop.
     # ------------------------------------------------------------------
 
-    def _collect_fun_stats_sync(self) -> dict[str, Any]:
-        """Collect purely-for-fun statistics (synchronous, runs in executor)."""
-        all_states = self.hass.states.async_all()
+    @staticmethod
+    def _collect_fun_stats_sync(
+        all_states: list[State],
+        everything_off: bool,
+    ) -> dict[str, Any]:
+        """Collect purely-for-fun statistics (synchronous, runs in executor).
+
+        Parameters
+        ----------
+        all_states:
+            Snapshot of ``hass.states.async_all()`` taken on the event loop
+            before this method was dispatched.  Safe to read from any thread.
+        everything_off:
+            Pre-computed flag: True when no light entity is ``on``.
+        """
         entity_ids: list[str] = [s.entity_id for s in all_states]
         all_names: list[str] = []
         for s in all_states:
@@ -214,6 +298,10 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if entity_ids
             else 0.0
         )
+
+        # ── Longest / shortest entity ID ─────────────────────────────
+        longest_entity_id: str = max(entity_ids, key=len) if entity_ids else ""
+        shortest_entity_id: str = min(entity_ids, key=len) if entity_ids else ""
 
         # ── Most used emoji across friendly names ─────────────────────
         emoji_counts: dict[str, int] = {}
@@ -242,7 +330,7 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if any(pokemon in name.lower() for pokemon in POKEMON_NAMES)
         )
 
-        # ── Most redundant name (shortest name repeated most times) ───
+        # ── Most redundant name (most duplicated friendly name) ───────
         name_freq: dict[str, int] = {}
         for name in all_names:
             clean = name.strip().lower()
@@ -251,10 +339,14 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         most_redundant_name: str = "N/A"
         if name_freq:
-            # Sort by frequency desc, then by shortest name
             best = max(name_freq, key=lambda n: (name_freq[n], -len(n)))
             if name_freq[best] > 1:
                 most_redundant_name = f"{best!r} (×{name_freq[best]})"
+
+        # ── Names that contain numbers ────────────────────────────────
+        names_with_numbers: int = sum(
+            1 for name in all_names if any(ch.isdigit() for ch in name)
+        )
 
         # ── Daily rotating quotes / mascots ──────────────────────────
         day_of_year: int = datetime.date.today().timetuple().tm_yday
@@ -264,22 +356,30 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return {
             "most_used_emoji": most_used_emoji,
             "avg_entity_id_length": round(avg_entity_id_length, 2),
+            "longest_entity_id": longest_entity_id,
+            "shortest_entity_id": shortest_entity_id,
             "devices_named_after_pokemon": pokemon_count,
             "emoji_density": emoji_density,
             "most_redundant_name": most_redundant_name,
+            "names_with_numbers": names_with_numbers,
             "random_daily_quote": random_daily_quote,
             "house_mascot": house_mascot,
-            # Boolean facts used by binary sensors
-            "everything_off": self._check_everything_off(),
+            # Pre-computed on the event loop and passed in
+            "everything_off": everything_off,
         }
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
-    def _aggregate_energy(self, all_states: list[Any]) -> float:
-        """Sum the state values of all energy sensors (kWh)."""
+    @staticmethod
+    def _aggregate_energy(all_states: list[Any]) -> tuple[float, int]:
+        """Sum the state values of all energy sensors (kWh).
+
+        Returns a tuple of (total_kwh, number_of_contributing_entities).
+        """
         total: float = 0.0
+        count: int = 0
         for state in all_states:
             unit = state.attributes.get("unit_of_measurement", "")
             if unit.lower() in ("kwh", "wh") and state.state not in (
@@ -293,14 +393,7 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if unit.lower() == "wh":
                         value /= 1000.0
                     total += value
+                    count += 1
                 except ValueError:
                     pass
-        return round(total, 3)
-
-    def _check_everything_off(self) -> bool:
-        """Return True if no light entity is currently 'on'."""
-        return not any(
-            s.state == "on"
-            for s in self.hass.states.async_all()
-            if s.entity_id.startswith("light.")
-        )
+        return round(total, 3), count

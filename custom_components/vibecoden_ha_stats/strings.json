@@ -17,7 +17,7 @@
         "data": {
           "scan_interval": "Polling interval (seconds)",
           "enable_fun_stats": "Enable fun / useless stats",
-          "enable_host_telemetry": "Enable host CPU & RAM telemetry (requires psutil)"
+          "enable_host_telemetry": "Enable host CPU, RAM & Disk telemetry (requires psutil)"
         }
       }
     }

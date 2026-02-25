@@ -11,7 +11,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -78,7 +78,7 @@ class VibeBinarySensor(CoordinatorEntity[VibeStatsCoordinator], BinarySensorEnti
             name="Vibecoden HA Stats",
             manufacturer="Vibecoden",
             model="HA Stats",
-            entry_type="service",  # type: ignore[arg-type]
+            entry_type=DeviceEntryType.SERVICE,
         )
 
     @property
