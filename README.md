@@ -1,4 +1,4 @@
-# 🏠 Vibecoden HA Stats
+# 🏠 HA Stats
 
 > **A Home Assistant custom integration that turns your smart home into a stats-nerd playground.**
 > Useful metrics side-by-side with hilariously useless ones — because why not?
