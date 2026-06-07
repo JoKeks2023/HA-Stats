@@ -75,6 +75,8 @@ After installation, click **Configure** on the integration card to adjust:
 | Entity ID | Unit | Description |
 |---|---|---|
 | `sensor.total_devices` | — | Total devices in device registry |
+| `sensor.max_devices_ever` | — | Highest number of devices ever seen since stats tracking started |
+| `sensor.instance_age_days` | days | Age of the HA instance in days since stats tracking started |
 | `sensor.total_entities` | — | Total entity states (with domain breakdown attribute) |
 | `sensor.integrations_count` | — | Number of configured integrations |
 | `sensor.unique_domains_count` | — | Number of unique entity domains |
@@ -168,7 +170,7 @@ It contains four views:
 
 | View | Contents |
 |---|---|
-| **Overview** | Markdown summary + core & health glance cards |
+| **Overview** | Markdown summary + core & health glance cards + device-history graph |
 | **System** | CPU / RAM / Disk gauges + uptime + history graphs |
 | **Entities** | Full entity-count breakdown by domain |
 | **Fun Stats** | All fun sensors in a 2-column grid + daily quote |

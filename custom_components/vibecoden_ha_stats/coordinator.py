@@ -7,6 +7,7 @@ import re
 from typing import Any
 
 from homeassistant.core import HomeAssistant, State
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -55,6 +56,10 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.enable_fun_stats = enable_fun_stats
         self.enable_host_telemetry = enable_host_telemetry
+        self._store: Store[dict[str, Any]] = Store(hass, 1, f"{DOMAIN}_meta")
+        self._store_loaded = False
+        self._instance_first_seen_utc: datetime.datetime | None = None
+        self._max_devices_ever = 0
 
     # ------------------------------------------------------------------
     # Main data-fetch method
@@ -63,6 +68,7 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch fresh stats from Home Assistant internals."""
         try:
+            await self._async_load_meta_once()
             core = await self._collect_core_stats()
             fun: dict[str, Any] = {}
             if self.enable_fun_stats:
@@ -84,6 +90,79 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception as err:
             raise UpdateFailed(f"Error updating VibeStats data: {err}") from err
 
+    async def _async_load_meta_once(self) -> None:
+        """Load persistent meta information once per coordinator lifetime."""
+        if self._store_loaded:
+            return
+
+        self._store_loaded = True
+        try:
+            saved = await self._store.async_load() or {}
+            first_seen_raw = saved.get("instance_first_seen_utc")
+            if isinstance(first_seen_raw, str):
+                try:
+                    parsed = datetime.datetime.fromisoformat(first_seen_raw)
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+                    self._instance_first_seen_utc = parsed.astimezone(
+                        datetime.timezone.utc
+                    )
+                except ValueError:
+                    _LOGGER.debug("Invalid stored instance_first_seen_utc: %s", first_seen_raw)
+
+            max_devices = saved.get("max_devices_ever")
+            if isinstance(max_devices, int) and max_devices >= 0:
+                self._max_devices_ever = max_devices
+        except Exception:
+            _LOGGER.debug("Could not load persistent stats meta", exc_info=True)
+
+    async def _async_save_meta(self) -> None:
+        """Persist meta information used across restarts."""
+        try:
+            await self._store.async_save(
+                {
+                    "instance_first_seen_utc": (
+                        self._instance_first_seen_utc.isoformat()
+                        if self._instance_first_seen_utc
+                        else None
+                    ),
+                    "max_devices_ever": self._max_devices_ever,
+                }
+            )
+        except Exception:
+            _LOGGER.debug("Could not save persistent stats meta", exc_info=True)
+
+    async def _async_update_persistent_device_meta(
+        self, total_devices: int
+    ) -> tuple[int, str | None, int]:
+        """Update and return instance age + first seen + max devices ever."""
+        now = datetime.datetime.now(datetime.timezone.utc)
+        changed = False
+
+        if self._instance_first_seen_utc is None:
+            self._instance_first_seen_utc = now
+            changed = True
+
+        if total_devices > self._max_devices_ever:
+            self._max_devices_ever = total_devices
+            changed = True
+
+        if changed:
+            await self._async_save_meta()
+
+        first_seen_iso = (
+            self._instance_first_seen_utc.isoformat()
+            if self._instance_first_seen_utc is not None
+            else None
+        )
+        instance_age_days = (
+            max(0, (now - self._instance_first_seen_utc).days)
+            if self._instance_first_seen_utc is not None
+            else 0
+        )
+
+        return instance_age_days, first_seen_iso, self._max_devices_ever
+
     # ------------------------------------------------------------------
     # Core stats
     # ------------------------------------------------------------------
@@ -103,6 +182,12 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             total_devices = len(dev_reg.devices)
         except Exception:
             _LOGGER.debug("Could not access device registry", exc_info=True)
+
+        (
+            instance_age_days,
+            instance_first_seen_utc,
+            max_devices_ever,
+        ) = await self._async_update_persistent_device_meta(total_devices)
 
         # ── Entity registry stats ────────────────────────────────────
         disabled_entities: int = 0
@@ -234,6 +319,9 @@ class VibeStatsCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return {
             "total_entities": total_entities,
             "total_devices": total_devices,
+            "instance_age_days": instance_age_days,
+            "instance_first_seen_utc": instance_first_seen_utc,
+            "max_devices_ever": max_devices_ever,
             "disabled_entities": disabled_entities,
             "integrations_count": integrations_count,
             "unique_domains_count": unique_domains_count,

@@ -138,6 +138,23 @@ def _collect_fun_stats_sync(all_states, everything_off: bool):
     }
 
 
+def _update_persistent_device_meta(
+    now: datetime.datetime,
+    total_devices: int,
+    first_seen: datetime.datetime | None,
+    max_devices_ever: int,
+):
+    """Copy of persistent device-meta update logic."""
+    if first_seen is None:
+        first_seen = now
+
+    if total_devices > max_devices_ever:
+        max_devices_ever = total_devices
+
+    instance_age_days = max(0, (now - first_seen).days)
+    return instance_age_days, first_seen, max_devices_ever
+
+
 # ---------------------------------------------------------------------------
 # Tests for _aggregate_energy
 # ---------------------------------------------------------------------------
@@ -293,3 +310,29 @@ class TestCollectFunStats:
         # But no name stats
         assert result["most_used_emoji"] == "🤷"
 
+
+class TestPersistentDeviceMeta:
+    def test_first_seen_is_initialized(self):
+        now = datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone.utc)
+        age, first_seen, max_devices = _update_persistent_device_meta(
+            now=now,
+            total_devices=4,
+            first_seen=None,
+            max_devices_ever=0,
+        )
+        assert age == 0
+        assert first_seen == now
+        assert max_devices == 4
+
+    def test_max_devices_only_increases(self):
+        now = datetime.datetime(2026, 1, 10, tzinfo=datetime.timezone.utc)
+        earlier = datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone.utc)
+        age, first_seen, max_devices = _update_persistent_device_meta(
+            now=now,
+            total_devices=6,
+            first_seen=earlier,
+            max_devices_ever=9,
+        )
+        assert age == 9
+        assert first_seen == earlier
+        assert max_devices == 9

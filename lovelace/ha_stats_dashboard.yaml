@@ -27,6 +27,7 @@ views:
           | | |
           |---|---|
           | 📦 Devices | **{{ states('sensor.total_devices') }}** |
+          | 🧱 Max Devices Ever | **{{ states('sensor.max_devices_ever') }}** |
           | 🔌 Entities | **{{ states('sensor.total_entities') }}** |
           | 🧩 Integrations | **{{ states('sensor.integrations_count') }}** |
           | 🏷️ Unique Domains | **{{ states('sensor.unique_domains_count') }}** |
@@ -36,6 +37,7 @@ views:
           | ⚡ Energy (24 h) | **{{ states('sensor.energy_24h_kwh') }} kWh** |
           | 🖥️ CPU / RAM / Disk | **{{ states('sensor.host_cpu_pct') }}% / {{ states('sensor.host_ram_pct') }}% / {{ states('sensor.host_disk_pct') }}%** |
           | ⏱️ Uptime | **{{ states('sensor.uptime_hours') }} h** |
+          | 📅 HA Instance Age | **{{ states('sensor.instance_age_days') }} days** |
           | 🦙 Mascot | {{ states('sensor.house_mascot') }} |
           | 💬 Quote | *{{ states('sensor.random_daily_device_quote') }}* |
 
@@ -50,6 +52,9 @@ views:
           - entity: sensor.total_entities
             name: Entities
             icon: mdi:format-list-bulleted
+          - entity: sensor.max_devices_ever
+            name: Max Devices
+            icon: mdi:devices-alert
           - entity: sensor.integrations_count
             name: Integrations
             icon: mdi:puzzle
@@ -68,6 +73,23 @@ views:
           - entity: sensor.active_devices_24h
             name: Active (24 h)
             icon: mdi:pulse
+
+      - type: entities
+        title: 📈 Device History
+        entities:
+          - entity: sensor.instance_age_days
+            name: HA Instance Age (days)
+            icon: mdi:calendar-clock
+          - entity: sensor.max_devices_ever
+            name: Max Devices Ever Seen
+            icon: mdi:devices-alert
+
+      - type: history-graph
+        title: Devices Over Time
+        hours_to_show: 168
+        entities:
+          - entity: sensor.total_devices
+            name: Devices
 
       # ── Health stats ────────────────────────────────────────────────────────
       - type: glance
